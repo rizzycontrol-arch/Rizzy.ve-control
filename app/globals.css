@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body {
+background: #f7e9fa;
+color: #3b1140;
+}
+.card {
+background: #fff;
+border: 1px solid #f8b9d8;
+border-radius: 18px;
+}
+.btn-primary {
+background: #ec2286;
+color: #fff;
+border-radius: 999px;
+font-weight: 700;
+transition: background 0.15s;
+}
+.btn-primary:hover {
+background: #b81a6b;
+}
+.input-rz {
+width: 100%;
+padding: 11px 13px;
+border-radius: 12px;
+border: 1.5px solid #f8b9d8;
+font-weight: 600;
+font-size: 14px;
+background: #fff;
+color: #3b1140;
+}
+.input-rz:focus {
+outline: none;
+border-color: #ec2286;
+}
