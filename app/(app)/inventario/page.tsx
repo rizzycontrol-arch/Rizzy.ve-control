@@ -31,6 +31,16 @@ return (
 <div className="space-y-6">
 {isOwner && (
 <section className="panel card p-6">
+<h2 className="font-baloo font-bold text-lg text-pink-700 mb-1">Reportes de Inventario</h2>
+<p className="text-sm text-muted-700 mb-4">Solo tú puedes ver y descargar estos archivos.</p>
+<div className="flex gap-3 flex-wrap">
+<a href="/api/inventario/conteo" className="btn-primary px-4 py-2.5 text-sm inline-block">📋 Descargar para Conteo Físico</a>
+<a href="/api/inventario/completo" className="text-sm font-bold px-4 py-2.5 rounded-full border border-pink-200 bg-white text-pink-700 inline-block">💲 Descargar Inventario Completo (con precios)</a>
+</div>
+</section>
+)}
+{isOwner && (
+<section className="panel card p-6">
 <h2 className="font-baloo font-bold text-lg text-pink-700 mb-4">Agregar Producto</h2>
 <form action={addProduct} className="grid grid-cols-2 gap-3">
 <div>
