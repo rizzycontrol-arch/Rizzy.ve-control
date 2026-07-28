@@ -195,9 +195,10 @@ Quitar
 </div>
 ) : (
 <>
+<div className="flex gap-2">
 <input
 type="text"
-className="input-rz"
+className="input-rz flex-1"
 placeholder="Buscar clienta..."
 value={clientSearch}
 onFocus={() => setShowClientDropdown(true)}
@@ -206,6 +207,17 @@ setClientSearch(e.target.value);
 setShowClientDropdown(true);
 }}
 />
+<button
+type="button"
+onClick={() => {
+setNewClientMode(true);
+setShowClientDropdown(false);
+}}
+className="text-xs font-bold px-3.5 rounded-full bg-teal-500 text-white whitespace-nowrap"
+>
+➕ Nueva
+</button>
+</div>
 {showClientDropdown && (
 <div className="absolute z-20 bg-white border border-pink-200 rounded-xl mt-1 w-full max-h-56 overflow-y-auto shadow-lg">
 {filteredClients.slice(0, 8).map((c) => (
@@ -220,15 +232,9 @@ setShowClientDropdown(false);
 {c.name} {c.lastname ?? ""}
 </button>
 ))}
-<button
-className="block w-full text-left px-3 py-2 text-sm text-pink-700 font-bold hover:bg-pink-100"
-onClick={() => {
-setNewClientMode(true);
-setShowClientDropdown(false);
-}}
->
-➕ Agregar clienta nueva
-</button>
+{filteredClients.length === 0 && (
+<p className="px-3 py-2 text-xs text-muted-700">Sin resultados. Usa el botón “➕ Nueva” para agregarla.</p>
+)}
 </div>
 )}
 </>
