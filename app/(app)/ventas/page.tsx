@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { addTransaction, deleteTransaction } from "./actions";
+import { addTransaction } from "./actions";
+import VentasHistorial from "./VentasHistorial";
 const CATS_INGRESO = ["Venta de Productos", "Envío Cobrado a Clienta", "Otro Ingreso"];
 const CATS_GASTO = [
 "Compra de Inventario",
@@ -20,13 +21,10 @@ const PAYMENT_METHODS = [
 "Zelle",
 "Binance",
 ];
-function fmt(n: number) {
-return "$" + n.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 export default async function VentasPage({
 searchParams,
 }: {
-searchParams: { type?: string };
+searchParams: { type?: string; vok?: string; verror?: string };
 }) {
 const supabase = createClient();
 const {
@@ -41,19 +39,30 @@ const isOwner = profile?.role === "owner";
 const currentType = searchParams?.type === "gasto" ? "gasto" : "ingreso";
 const today = new Date().toISOString().slice(0, 10);
 let history: any[] = [];
+let products: any[] = [];
 if (isOwner) {
-const { data } = await supabase
-.from("transactions")
-.select("*")
-.order("date", { ascending: false })
-.limit(40);
+const [{ data }, { data: prods }] = await Promise.all([
+supabase.from("transactions").select("*").order("date", { ascending: false }).limit(40),
+supabase.from("products").select("id, name, product_variations(id, name)").order("name", { ascending: true }),
+]);
 history = data ?? [];
+products = prods ?? [];
 } else {
 const { data } = await supabase.rpc("transactions_for_employee");
 history = (data ?? []).slice(0, 40);
 }
 return (
 <div className="space-y-6">
+{searchParams?.vok && (
+<div className="bg-teal-100 text-[#0B6B65] text-sm px-4 py-3 rounded-xl font-semibold">
+✅ Guardado correctamente.
+</div>
+)}
+{searchParams?.verror && (
+<div className="bg-pink-100 text-coral-500 text-sm px-4 py-3 rounded-xl font-semibold">
+⚠️ {searchParams.verror}
+</div>
+)}
 <section className="panel card p-6">
 <h2 className="font-baloo font-bold text-lg text-pink-700 mb-4">
 {isOwner ? "Registrar Ingreso o Gasto" : "Registrar Venta"}
@@ -140,33 +149,7 @@ Guardar
 </section>
 <section className="panel card p-6">
 <h2 className="font-baloo font-bold text-lg text-pink-700 mb-4">Historial</h2>
-{history.length === 0 && (
-<p className="text-center text-muted-700 py-6 text-sm">Aún no hay transacciones.</p>
-)}
-<div>
-{history.map((t) => (
-<div key={t.id} className="flex items-center gap-3 py-3 border-b border-pink-100 last:border-none">
-<span className={`w-2 h-2 rounded-full ${t.type === "ingreso" ? "bg-teal-500" : "bg-coral-500"}`} />
-<div className="flex-1 min-w-0">
-<div className="text-sm font-bold">{t.description || t.category}</div>
-<div className="text-xs text-muted-700 mt-0.5">{t.date} · {t.category}</div>
-</div>
-{isOwner ? (
-<>
-<div className={`font-mono font-bold text-sm ${t.type === "ingreso" ? "text-teal-500" : "text-coral-500"}`}>
-{t.type === "ingreso" ? "+" : "-"}{fmt(Number(t.amount))}
-</div>
-<form action={deleteTransaction}>
-<input type="hidden" name="id" value={t.id} />
-<button className="text-pink-200 hover:text-coral-500 px-2">✕</button>
-</form>
-</>
-) : (
-<span className="text-xs font-mono text-muted-700">🔒</span>
-)}
-</div>
-))}
-</div>
+<VentasHistorial history={history as any} isOwner={isOwner} products={products as any} />
 </section>
 </div>
 );
