@@ -305,7 +305,7 @@ className="input-rz"
 Asignado: ${splitTotal().toFixed(2)} / Total: ${total.toFixed(2)}
 </div>
 </div>
-})
+)}
 <div className="flex justify-between items-center pt-4 mt-2 border-t-2 border-pink-100">
 <span className="font-baloo font-bold text-lg">Total</span>
 <div className="text-right">
@@ -411,7 +411,7 @@ className="card p-3.5 text-left hover:shadow-lg transition disabled:opacity-40"
 >
 <div className="font-baloo font-bold text-sm mb-1">{p.name}</div>
 <div className="text-[11px] text-muted-700 mb-2">{p.type}</div>
-<div className="font-mono font-bold text-pink-700 text-sm">$${Number(p.price).toFixed(2)}</div>
+<div className="font-mono font-bold text-pink-700 text-sm">${Number(p.price).toFixed(2)}</div>
 </button>
 );
 })}
@@ -449,7 +449,7 @@ className="card p-3.5 text-left hover:shadow-lg transition disabled:opacity-40"
 Ir a Pagar
 </button>
 </div>
-}
+)}
 </div>
 {modalProduct && (
 <div className="fixed inset-0 bg-[rgba(59,17,64,0.5)] flex items-center justify-center z-50 p-5" onClick={() => setModalProduct(null)}>
