@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { updateProduct, updateVariationStock, deleteProduct, addVariation, deleteVariation } from "./actions";
+import { updateProduct, updateVariationStock, deleteProduct, addVariations, deleteVariation } from "./actions";
 type Variation = { id: number; name: string; stock: number };
 type Product = {
 id: number;
@@ -32,6 +32,25 @@ isOwner: boolean;
 const [search, setSearch] = useState("");
 const [copied, setCopied] = useState(false);
 const [addingVarFor, setAddingVarFor] = useState<number | null>(null);
+const [varRows, setVarRows] = useState<{ key: number; name: string; stock: string }[]>([
+{ key: 0, name: "", stock: "" },
+]);
+const [varKeyCounter, setVarKeyCounter] = useState(1);
+function openAddVar(productId: number, defaultStock: number) {
+setAddingVarFor(productId);
+setVarRows([{ key: 0, name: "", stock: String(defaultStock) }]);
+setVarKeyCounter(1);
+}
+function addVarRow() {
+setVarRows((r) => [...r, { key: varKeyCounter, name: "", stock: "" }]);
+setVarKeyCounter((k) => k + 1);
+}
+function removeVarRow(key: number) {
+setVarRows((r) => r.filter((row) => row.key !== key));
+}
+function updateVarRow(key: number, field: "name" | "stock", value: string) {
+setVarRows((r) => r.map((row) => (row.key === key ? { ...row, [field]: value } : row)));
+}
 const filtered = useMemo(() => {
 const q = search.trim().toLowerCase();
 if (!q) return products;
@@ -285,31 +304,61 @@ OK
 <div className="mt-2 pl-5">
 {addingVarFor === p.id ? (
 <form
-action={addVariation}
-className="flex items-center gap-1.5 flex-wrap"
+action={addVariations}
+className="flex flex-col gap-2 items-start bg-pink-50/50 rounded-lg p-2"
 onSubmit={() => setAddingVarFor(null)}
 >
 <input type="hidden" name="productId" value={p.id} />
+{varRows.map((row) => (
+<div key={row.key} className="flex items-end gap-1.5 flex-wrap">
+<div className="flex flex-col">
+<label className="text-[9px] uppercase text-muted-700 font-mono mb-0.5">Nombre variación</label>
 <input
 type="text"
-name="name"
-required
-placeholder="Nombre (ej: Talla M, Rojo)"
-className="input-rz !py-1 !px-2 w-40 text-xs"
+name="variationName"
+placeholder="Ej: Talla M, Rojo"
+value={row.name}
+onChange={(e) => updateVarRow(row.key, "name", e.target.value)}
+className="input-rz !py-1 !px-2 w-36 text-xs"
 />
+</div>
+<div className="flex flex-col">
+<label className="text-[9px] uppercase text-muted-700 font-mono mb-0.5">Cantidad</label>
 <input
 type="number"
 step="1"
-name="stock"
-defaultValue={hasVar ? 0 : Number(p.stock)}
-placeholder="Stock"
+name="variationStock"
+placeholder="0"
+value={row.stock}
+onChange={(e) => updateVarRow(row.key, "stock", e.target.value)}
 className="input-rz !py-1 !px-2 w-16 text-xs"
 />
+</div>
+{varRows.length > 1 && (
+<button
+type="button"
+onClick={() => removeVarRow(row.key)}
+className="text-pink-200 hover:text-coral-500 px-1 pb-1.5"
+title="Quitar"
+>
+✕
+</button>
+)}
+</div>
+))}
+<div className="flex items-center gap-2">
+<button
+type="button"
+onClick={addVarRow}
+className="text-[10px] font-bold text-pink-600"
+>
++ Agregar otra variación
+</button>
 <button
 type="submit"
 className="text-[10px] font-bold px-2 py-1 rounded-full bg-teal-500 text-white"
 >
-Guardar
+Guardar todo
 </button>
 <button
 type="button"
@@ -318,11 +367,12 @@ className="text-[10px] text-muted-700 px-1"
 >
 Cancelar
 </button>
+</div>
 </form>
 ) : (
 <button
 type="button"
-onClick={() => setAddingVarFor(p.id)}
+onClick={() => openAddVar(p.id, hasVar ? 0 : Number(p.stock))}
 className="text-[10px] font-bold text-pink-600"
 >
 + Agregar variación
