@@ -95,6 +95,13 @@ const margin = income > 0 ? (net / income) * 100 : 0;
 const ingresos = list.filter((t) => t.type === "ingreso");
 const ticketIds = new Set(ingresos.map((t: any) => t.sale_id ?? `tx-${t.id}`));
 const ticketPromedio = ticketIds.size > 0 ? income / ticketIds.size : 0;
+const today = new Date().toISOString().slice(0, 10);
+const todayIngresos = ingresos.filter((t: any) => t.date === today);
+const salesTodayIds = new Set(todayIngresos.map((t: any) => t.sale_id ?? `tx-${t.id}`));
+const ventasDiariasCount = salesTodayIds.size;
+const ventasDiariasTotal = todayIngresos.reduce((s: number, t: any) => s + Number(t.amount), 0);
+const { data: settings } = await supabase.from("settings").select("exchange_rate").eq("id", 1).single();
+const rate = Number(settings?.exchange_rate ?? 1);
 const { data: products } = await supabase
 .from("products")
 .select("*, product_variations(*)");
@@ -127,7 +134,7 @@ return (
 <div className="font-baloo font-bold text-2xl text-amber-700 mt-1">{margin.toFixed(1)}%</div>
 </div>
 </div>
-<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 <div className="card p-5">
 <div className="font-mono text-[11px] uppercase tracking-wide text-muted-700">
 Valor Inventario (Costo)
@@ -145,6 +152,18 @@ Valor Inventario (Venta)
 Ticket Promedio
 </div>
 <div className="font-baloo font-bold text-xl text-teal-500 mt-1">{fmt(ticketPromedio)}</div>
+</div>
+<div className="card p-5">
+<div className="font-mono text-[11px] uppercase tracking-wide text-muted-700">
+Ventas de Hoy
+</div>
+<div className="font-baloo font-bold text-xl text-pink-700 mt-1">{fmt(ventasDiariasTotal)}</div>
+<div className="text-xs text-muted-700 font-mono mt-0.5">
+≈ Bs {(ventasDiariasTotal * (rate || 1)).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+</div>
+<div className="text-xs text-muted-700 mt-0.5">
+{ventasDiariasCount} venta{ventasDiariasCount === 1 ? "" : "s"} hoy
+</div>
 </div>
 </div>
 {stockAlerts.length > 0 && (
