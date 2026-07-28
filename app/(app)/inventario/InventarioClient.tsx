@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { updateProduct, updateVariationStock, deleteProduct } from "./actions";
+import { updateProduct, updateVariationStock, deleteProduct, addVariation, deleteVariation } from "./actions";
 type Variation = { id: number; name: string; stock: number };
 type Product = {
 id: number;
@@ -31,6 +31,7 @@ isOwner: boolean;
 }) {
 const [search, setSearch] = useState("");
 const [copied, setCopied] = useState(false);
+const [addingVarFor, setAddingVarFor] = useState<number | null>(null);
 const filtered = useMemo(() => {
 const q = search.trim().toLowerCase();
 if (!q) return products;
@@ -246,6 +247,7 @@ p.effStock <= 0
 <div key={v.id} className="flex items-center gap-2 text-xs text-muted-700">
 <span className="flex-1 min-w-0">↳ {v.name}</span>
 {isOwner ? (
+<>
 <form action={updateVariationStock} className="flex items-center gap-1">
 <input type="hidden" name="id" value={v.id} />
 <input
@@ -262,6 +264,14 @@ className="text-[10px] font-bold px-2 py-1 rounded-full bg-pink-100 text-pink-70
 OK
 </button>
 </form>
+<form action={deleteVariation}>
+<input type="hidden" name="id" value={v.id} />
+<input type="hidden" name="productId" value={p.id} />
+<button className="text-pink-200 hover:text-coral-500 px-1" title="Borrar variación">
+✕
+</button>
+</form>
+</>
 ) : (
 <span className={Number(v.stock) <= 0 ? "text-coral-500 font-bold" : ""}>
 {v.stock}
@@ -269,6 +279,55 @@ OK
 )}
 </div>
 ))}
+</div>
+)}
+{isOwner && (
+<div className="mt-2 pl-5">
+{addingVarFor === p.id ? (
+<form
+action={addVariation}
+className="flex items-center gap-1.5 flex-wrap"
+onSubmit={() => setAddingVarFor(null)}
+>
+<input type="hidden" name="productId" value={p.id} />
+<input
+type="text"
+name="name"
+required
+placeholder="Nombre (ej: Talla M, Rojo)"
+className="input-rz !py-1 !px-2 w-40 text-xs"
+/>
+<input
+type="number"
+step="1"
+name="stock"
+defaultValue={hasVar ? 0 : Number(p.stock)}
+placeholder="Stock"
+className="input-rz !py-1 !px-2 w-16 text-xs"
+/>
+<button
+type="submit"
+className="text-[10px] font-bold px-2 py-1 rounded-full bg-teal-500 text-white"
+>
+Guardar
+</button>
+<button
+type="button"
+onClick={() => setAddingVarFor(null)}
+className="text-[10px] text-muted-700 px-1"
+>
+Cancelar
+</button>
+</form>
+) : (
+<button
+type="button"
+onClick={() => setAddingVarFor(p.id)}
+className="text-[10px] font-bold text-pink-600"
+>
++ Agregar variación
+</button>
+)}
 </div>
 )}
 </div>
