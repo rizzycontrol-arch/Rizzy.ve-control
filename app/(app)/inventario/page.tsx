@@ -5,7 +5,11 @@ const PROD_TYPES = [
 "Shampoo", "Acondicionador", "Gel", "Crema", "Mascarilla", "Aceite", "Serum",
 "Espuma", "Gelatina", "Kit", "Activador", "Tónico", "Splash", "Accesorio", "Otro",
 ];
-export default async function InventarioPage() {
+export default async function InventarioPage({
+searchParams,
+}: {
+searchParams: { padded?: string; perror?: string };
+}) {
 const supabase = createClient();
 const {
 data: { user },
@@ -29,6 +33,16 @@ return { ...p, effStock };
 });
 return (
 <div className="space-y-6">
+{searchParams?.padded && (
+<div className="bg-teal-100 text-[#0B6B65] text-sm px-4 py-3 rounded-xl font-semibold">
+✅ Guardado correctamente.
+</div>
+)}
+{searchParams?.perror && (
+<div className="bg-pink-100 text-coral-500 text-sm px-4 py-3 rounded-xl font-semibold">
+⚠️ {searchParams.perror}
+</div>
+)}
 {isOwner && (
 <section className="panel card p-6">
 <h2 className="font-baloo font-bold text-lg text-pink-700 mb-1">Reportes de Inventario</h2>
