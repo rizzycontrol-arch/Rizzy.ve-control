@@ -9,23 +9,58 @@ const type = (formData.get("type") as string) || "Otro";
 const brand = formData.get("brand") as string;
 const costRaw = formData.get("cost") as string;
 const price = parseFloat(formData.get("price") as string);
-const stock = parseFloat((formData.get("stock") as string) || "0");
 const minStock = parseFloat((formData.get("minStock") as string) || "5");
+const varNames = formData.getAll("variationName") as string[];
+const varStocksRaw = formData.getAll("variationStock") as string[];
+const variations = varNames
+.map((n, i) => ({
+name: (n || "").trim(),
+stock: (() => {
+const s = parseFloat(varStocksRaw[i] || "0");
+return isNaN(s) ? 0 : s;
+})(),
+}))
+.filter((v) => v.name);
+const flatStock = parseFloat((formData.get("stock") as string) || "0");
+const initialStock =
+variations.length > 0
+? variations.reduce((s, v) => s + v.stock, 0)
+: isNaN(flatStock)
+? 0
+: flatStock;
 if (!name) redirect("/inventario?perror=" + encodeURIComponent("Falta el nombre del producto."));
 if (isNaN(price)) redirect("/inventario?perror=" + encodeURIComponent("El precio de venta no es válido."));
 if (isNaN(minStock)) redirect("/inventario?perror=" + encodeURIComponent("El stock mínimo no es válido."));
-const { error } = await supabase.from("products").insert({
+const { data: inserted, error } = await supabase
+.from("products")
+.insert({
 name,
 type,
 brand: brand || null,
 cost: costRaw ? parseFloat(costRaw) : null,
 price,
-stock,
+stock: initialStock,
 min_stock: minStock,
-});
+})
+.select()
+.single();
 revalidatePath("/inventario");
-if (error) {
-redirect("/inventario?perror=" + encodeURIComponent("No se pudo guardar: " + error.message));
+if (error || !inserted) {
+redirect(
+"/inventario?perror=" + encodeURIComponent("No se pudo guardar: " + (error?.message || "error desconocido"))
+);
+}
+if (variations.length > 0) {
+const rows = variations.map((v) => ({ product_id: inserted!.id, name: v.name, stock: v.stock }));
+const { error: varError } = await supabase.from("product_variations").insert(rows);
+revalidatePath("/inventario");
+revalidatePath("/pos");
+if (varError) {
+redirect(
+"/inventario?perror=" +
+encodeURIComponent("El producto se guardó, pero hubo un error con las variaciones: " + varError.message)
+);
+}
 }
 redirect("/inventario?padded=1");
 }
