@@ -305,10 +305,13 @@ className="input-rz"
 Asignado: ${splitTotal().toFixed(2)} / Total: ${total.toFixed(2)}
 </div>
 </div>
-)}
+})
 <div className="flex justify-between items-center pt-4 mt-2 border-t-2 border-pink-100">
 <span className="font-baloo font-bold text-lg">Total</span>
-<span className="font-baloo font-bold text-xl text-pink-700">${total.toFixed(2)}</span>
+<div className="text-right">
+<div className="font-baloo font-bold text-xl text-pink-700">${total.toFixed(2)}</div>
+<div className="text-xs text-muted-700 font-mono">≈ Bs {(total * (rate || 1)).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+</div>
 </div>
 {error && <p className="text-coral-500 text-sm font-semibold mt-2">{error}</p>}
 <div className="flex gap-2 mt-4">
@@ -437,13 +440,16 @@ className="card p-3.5 text-left hover:shadow-lg transition disabled:opacity-40"
 ))}
 <div className="flex justify-between items-center pt-3 mt-2 border-t-2 border-pink-100 font-baloo font-bold">
 <span>Total</span>
-<span className="text-pink-700">${subtotal.toFixed(2)}</span>
+<div className="text-right">
+<div className="text-pink-700">${subtotal.toFixed(2)}</div>
+<div className="text-[11px] text-muted-700 font-mono font-normal">≈ Bs {(subtotal * (rate || 1)).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+</div>
 </div>
 <button onClick={() => setStep("pago")} className="btn-primary w-full py-3 mt-3">
 Ir a Pagar
 </button>
 </div>
-)}
+}
 </div>
 {modalProduct && (
 <div className="fixed inset-0 bg-[rgba(59,17,64,0.5)] flex items-center justify-center z-50 p-5" onClick={() => setModalProduct(null)}>
