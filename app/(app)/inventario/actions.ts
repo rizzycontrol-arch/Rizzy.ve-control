@@ -129,6 +129,40 @@ revalidatePath("/pos");
 revalidatePath("/resumen");
 redirect("/inventario?padded=1");
 }
+export async function addVariations(formData: FormData) {
+  const supabase = createClient();
+  const productId = formData.get("productId") as string;
+  const varNames = formData.getAll("variationName") as string[];
+  const varStocksRaw = formData.getAll("variationStock") as string[];
+  const variations = varNames
+    .map((n, i) => ({
+      name: (n || "").trim(),
+      stock: (() => {
+        const s = parseFloat(varStocksRaw[i] || "0");
+        return isNaN(s) ? 0 : s;
+      })(),
+    }))
+    .filter((v) => v.name);
+  if (!productId) redirect("/inventario?perror=" + encodeURIComponent("Falta el producto."));
+  if (variations.length === 0) {
+    redirect("/inventario?perror=" + encodeURIComponent("Agrega al menos una variación con nombre."));
+  }
+  const rows = variations.map((v) => ({ product_id: Number(productId), name: v.name, stock: v.stock }));
+  const { error } = await supabase.from("product_variations").insert(rows);
+  if (error) {
+    redirect("/inventario?perror=" + encodeURIComponent("No se pudieron agregar las variaciones: " + error.message));
+  }
+  const { data: vars } = await supabase
+    .from("product_variations")
+    .select("stock")
+    .eq("product_id", productId);
+  const total = (vars ?? []).reduce((s, v) => s + Number(v.stock), 0);
+  await supabase.from("products").update({ stock: total }).eq("id", productId);
+  revalidatePath("/inventario");
+  revalidatePath("/pos");
+  revalidatePath("/resumen");
+  redirect("/inventario?padded=1");
+}
 export async function deleteVariation(formData: FormData) {
 const supabase = createClient();
 const id = formData.get("id") as string;
