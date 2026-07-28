@@ -114,6 +114,24 @@ const valorCosto = plist.reduce((s, p) => s + Number(p.cost ?? p.price) * effSto
 const valorVenta = plist.reduce((s, p) => s + Number(p.price) * effStock(p), 0);
 const stockAlerts = plist.filter((p) => effStock(p) <= Number(p.min_stock));
 const recent = list.slice(0, 10);
+const costMap = new Map(plist.map((p: any) => [p.id, Number(p.cost ?? p.price)]));
+const cogsFor = (txs: any[]) =>
+txs.reduce((s: number, t: any) => {
+if (!t.product_id) return s;
+const c = costMap.get(t.product_id);
+if (c === undefined) return s;
+return s + c * Number(t.quantity ?? 1);
+}, 0);
+const gastos = list.filter((t) => t.type === "gasto");
+const gastosHoy = gastos.filter((t: any) => t.date === today).reduce((s: number, t: any) => s + Number(t.amount), 0);
+const costoMercanciaHoy = cogsFor(todayIngresos);
+const gananciaNetaHoy = ventasDiariasTotal - costoMercanciaHoy - gastosHoy;
+const weekAgo = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+const weekIngresos = ingresos.filter((t: any) => t.date >= weekAgo);
+const ventasSemanaTotal = weekIngresos.reduce((s: number, t: any) => s + Number(t.amount), 0);
+const costoMercanciaSemana = cogsFor(weekIngresos);
+const gastosSemana = gastos.filter((t: any) => t.date >= weekAgo).reduce((s: number, t: any) => s + Number(t.amount), 0);
+const gananciaNetaSemana = ventasSemanaTotal - costoMercanciaSemana - gastosSemana;
 return (
 <div className="space-y-6">
 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -166,6 +184,64 @@ Ventas de Hoy
 </div>
 </div>
 </div>
+<section className="panel card p-6">
+<h2 className="font-baloo font-bold text-lg text-pink-700 mb-1">💰 Ganancia Real de Hoy</h2>
+<p className="text-sm text-muted-700 mb-4">
+Ventas de hoy menos el costo real de los productos vendidos y los gastos de hoy.
+</p>
+<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div className="card p-5">
+<div className="font-mono text-[11px] uppercase tracking-wide text-muted-700">
+Ventas de Hoy
+</div>
+<div className="font-baloo font-bold text-xl text-teal-500 mt-1">{fmt(ventasDiariasTotal)}</div>
+</div>
+<div className="card p-5">
+<div className="font-mono text-[11px] uppercase tracking-wide text-muted-700">
+Costo de Mercancía Vendida de Hoy
+</div>
+<div className="font-baloo font-bold text-xl text-coral-500 mt-1">{fmt(costoMercanciaHoy)}</div>
+</div>
+<div className="card p-5 border-2 border-pink-300">
+<div className="font-mono text-[11px] uppercase tracking-wide text-muted-700">
+Ganancia Neta de Hoy
+</div>
+<div className="font-baloo font-bold text-2xl text-pink-700 mt-1">{fmt(gananciaNetaHoy)}</div>
+<div className="text-xs text-muted-700 font-mono mt-0.5">
+≈ Bs {(gananciaNetaHoy * (rate || 1)).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+</div>
+</div>
+</div>
+</section>
+<section className="panel card p-6">
+<h2 className="font-baloo font-bold text-lg text-pink-700 mb-1">📅 Resumen Semanal (últimos 7 días)</h2>
+<p className="text-sm text-muted-700 mb-4">
+Mismos números que arriba, pero acumulados de los últimos 7 días.
+</p>
+<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div className="card p-5">
+<div className="font-mono text-[11px] uppercase tracking-wide text-muted-700">
+Ventas de la Semana
+</div>
+<div className="font-baloo font-bold text-xl text-teal-500 mt-1">{fmt(ventasSemanaTotal)}</div>
+</div>
+<div className="card p-5">
+<div className="font-mono text-[11px] uppercase tracking-wide text-muted-700">
+Costo de Mercancía Vendida (Semana)
+</div>
+<div className="font-baloo font-bold text-xl text-coral-500 mt-1">{fmt(costoMercanciaSemana)}</div>
+</div>
+<div className="card p-5 border-2 border-pink-300">
+<div className="font-mono text-[11px] uppercase tracking-wide text-muted-700">
+Ganancia Neta de la Semana
+</div>
+<div className="font-baloo font-bold text-2xl text-pink-700 mt-1">{fmt(gananciaNetaSemana)}</div>
+<div className="text-xs text-muted-700 font-mono mt-0.5">
+≈ Bs {(gananciaNetaSemana * (rate || 1)).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+</div>
+</div>
+</div>
+</section>
 {stockAlerts.length > 0 && (
 <section className="panel card p-6">
 <h2 className="font-baloo font-bold text-lg text-pink-700 mb-1">⚠️ Alertas de Stock</h2>
