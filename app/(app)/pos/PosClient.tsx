@@ -47,6 +47,7 @@ const [split, setSplit] = useState({ usd: 0, bs: 0, binance: 0 });
 const [error, setError] = useState("");
 const [saving, setSaving] = useState(false);
 const [done, setDone] = useState(false);
+const [editingRate, setEditingRate] = useState(false);
 const categories = useMemo(() => {
 const set = new Set(products.map((p) => p.type));
 return ["Todo", ...Array.from(set)];
@@ -330,6 +331,48 @@ return (
 ✅ Venta registrada con éxito
 </div>
 )}
+<div className="flex items-center gap-2 mb-3 text-sm">
+<span className="text-muted-700 font-mono text-xs uppercase tracking-wide">Tasa del día:</span>
+{editingRate ? (
+<>
+<input
+type="number"
+step="0.01"
+value={rate}
+onChange={(e) => setRate(parseFloat(e.target.value) || 1)}
+className="input-rz !py-1 !px-2 w-24 text-xs"
+/>
+<button
+type="button"
+onClick={() => {
+updateExchangeRate(rate);
+setEditingRate(false);
+}}
+className="text-xs font-bold px-3 py-1.5 rounded-full bg-teal-500 text-white whitespace-nowrap"
+>
+Guardar
+</button>
+<button
+type="button"
+onClick={() => setEditingRate(false)}
+className="text-xs text-muted-700"
+>
+Cancelar
+</button>
+</>
+) : (
+<>
+<span className="font-baloo font-bold text-pink-700">{rate} Bs/$</span>
+<button
+type="button"
+onClick={() => setEditingRate(true)}
+className="text-xs font-bold text-pink-600"
+>
+✎ Editar
+</button>
+</>
+)}
+</div>
 <input
 type="text"
 placeholder="Buscar producto..."
@@ -365,7 +408,7 @@ className="card p-3.5 text-left hover:shadow-lg transition disabled:opacity-40"
 >
 <div className="font-baloo font-bold text-sm mb-1">{p.name}</div>
 <div className="text-[11px] text-muted-700 mb-2">{p.type}</div>
-<div className="font-mono font-bold text-pink-700 text-sm">${Number(p.price).toFixed(2)}</div>
+<div className="font-mono font-bold text-pink-700 text-sm">$${Number(p.price).toFixed(2)}</div>
 </button>
 );
 })}
