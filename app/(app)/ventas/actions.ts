@@ -15,6 +15,22 @@ const category = formData.get("category") as string;
 const description = formData.get("description") as string;
 const paymentMethod = formData.get("paymentMethod") as string;
 if (!date || isNaN(amount)) redirect("/ventas?verror=" + encodeURIComponent("Falta la fecha o el monto no es válido."));
+// Si la dueña registra un ingreso desde su propio usuario, se acredita
+// automáticamente a la empleada (para que no se pierdan comisiones por olvido).
+let soldBy = user!.id;
+if (type === "ingreso") {
+const { data: myProfile } = await supabase.from("profiles").select("role").eq("id", user!.id).single();
+if (myProfile?.role === "owner") {
+const { data: employee } = await supabase
+.from("profiles")
+.select("id")
+.eq("role", "employee")
+.order("id", { ascending: true })
+.limit(1)
+.maybeSingle();
+if (employee?.id) soldBy = employee.id;
+}
+}
 const { error } = await supabase.from("transactions").insert({
 type,
 date,
@@ -22,7 +38,7 @@ amount,
 category,
 description,
 payment_method: paymentMethod,
-sold_by: user!.id,
+sold_by: soldBy,
 });
 revalidatePath("/ventas");
 revalidatePath("/resumen");

@@ -15,7 +15,12 @@ client_id: number | null;
 client_name: string | null;
 sale_id: string | null;
 created_at: string;
+payment_method: string | null;
 };
+const BS_METHODS = ["Bolívares", "Pago Móvil", "Transferencia"];
+function fmtBs(n: number) {
+return "Bs " + n.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 type ProductOption = {
 id: number;
 name: string;
@@ -35,10 +40,12 @@ export default function VentasHistorial({
 history,
 isOwner,
 products = [],
+rate = 1,
 }: {
 history: Tx[];
 isOwner: boolean;
 products?: ProductOption[];
+rate?: number;
 }) {
 const [editing, setEditing] = useState<number | null>(null);
 const [editProductId, setEditProductId] = useState<string>("");
@@ -61,6 +68,9 @@ return (
 {blocks.map((b) => {
 const first = b.items[0];
 const total = b.items.reduce((s, t) => s + Number(t.amount ?? 0), 0);
+const bsTotal = b.items
+.filter((t) => t.payment_method && BS_METHODS.includes(t.payment_method))
+.reduce((s, t) => s + Number(t.amount ?? 0), 0) * (rate || 1);
 const isSale = b.items.length > 1 || first.product_id != null;
 const clientLabel = first.client_name
 ? first.client_name
@@ -74,7 +84,21 @@ return (
 🕒 {fmtTime(first.created_at)} · {first.date}
 {isSale && <span className="text-muted-700 font-normal"> · 👤 {clientLabel}</span>}
 </div>
-{isOwner && <div className="text-xs font-mono font-bold text-teal-500">{fmt(total)}</div>}
+{isOwner && (
+<div className="text-right flex items-center gap-1.5">
+{first.payment_method && (
+<span className="text-[9px] uppercase tracking-wide font-bold text-pink-700 bg-pink-100 px-1.5 py-0.5 rounded whitespace-nowrap">
+{first.payment_method}
+</span>
+)}
+<div>
+<div className="text-xs font-mono font-bold text-teal-500">{fmt(total)}</div>
+{bsTotal > 0 && (
+<div className="text-[10px] font-mono text-muted-700">{fmtBs(bsTotal)}</div>
+)}
+</div>
+</div>
+)}
 </div>
 <div className="divide-y divide-pink-50">
 {b.items.map((t) => (
@@ -198,13 +222,20 @@ t.type === "ingreso" ? "bg-teal-500" : "bg-coral-500"
 </div>
 {isOwner ? (
 <>
+<div className="text-right whitespace-nowrap">
 <div
-className={`font-mono text-xs whitespace-nowrap ${
+className={`font-mono text-xs ${
 t.type === "ingreso" ? "text-teal-500" : "text-coral-500"
 }`}
 >
 {t.type === "ingreso" ? "+" : "-"}
 {fmt(Number(t.amount ?? 0))}
+</div>
+{t.payment_method && BS_METHODS.includes(t.payment_method) && (
+<div className="text-[10px] font-mono text-muted-700">
+{fmtBs(Number(t.amount ?? 0) * (rate || 1))}
+</div>
+)}
 </div>
 <button
 type="button"
