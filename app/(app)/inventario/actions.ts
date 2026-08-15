@@ -75,19 +75,26 @@ revalidatePath("/inventario");
 export async function updateProduct(formData: FormData) {
 const supabase = createClient();
 const id = formData.get("id") as string;
+const name = formData.get("name") as string | null;
+const type = formData.get("type") as string | null;
+const brand = formData.get("brand") as string | null;
 const price = parseFloat(formData.get("price") as string);
 const costRaw = formData.get("cost") as string;
 const stock = parseFloat(formData.get("stock") as string);
 const minStock = parseFloat(formData.get("minStock") as string);
 if (!id || isNaN(price) || isNaN(stock) || isNaN(minStock)) return;
-await supabase
-.from("products")
-.update({
+const update: Record<string, any> = {
 price,
 cost: costRaw ? parseFloat(costRaw) : null,
 stock,
 min_stock: minStock,
-})
+};
+if (name !== null && name.trim()) update.name = name.trim();
+if (type !== null && type.trim()) update.type = type.trim();
+if (brand !== null) update.brand = brand.trim() ? brand.trim() : null;
+await supabase
+.from("products")
+.update(update)
 .eq("id", id);
 revalidatePath("/inventario");
 revalidatePath("/pos");
@@ -97,8 +104,11 @@ export async function updateVariationStock(formData: FormData) {
 const supabase = createClient();
 const id = formData.get("id") as string;
 const stock = parseFloat(formData.get("stock") as string);
+const name = formData.get("name") as string | null;
 if (!id || isNaN(stock)) return;
-await supabase.from("product_variations").update({ stock }).eq("id", id);
+const update: Record<string, any> = { stock };
+if (name !== null && name.trim()) update.name = name.trim();
+await supabase.from("product_variations").update(update).eq("id", id);
 revalidatePath("/inventario");
 revalidatePath("/pos");
 }

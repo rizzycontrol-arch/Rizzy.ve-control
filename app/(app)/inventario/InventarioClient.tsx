@@ -36,6 +36,8 @@ const [varRows, setVarRows] = useState<{ key: number; name: string; stock: strin
 { key: 0, name: "", stock: "" },
 ]);
 const [varKeyCounter, setVarKeyCounter] = useState(1);
+const [editingProductId, setEditingProductId] = useState<number | null>(null);
+const [editingVarId, setEditingVarId] = useState<number | null>(null);
 function openAddVar(productId: number, defaultStock: number) {
 setAddingVarFor(productId);
 setVarRows([{ key: 0, name: "", stock: String(defaultStock) }]);
@@ -150,12 +152,12 @@ className="input-rz w-full !py-2 text-sm"
 </div>
 {isOwner && (
 <p className="text-xs text-muted-700 mb-4">
-💡 Toca el precio o el stock de un producto para editarlo directamente.
+💡 Toca el precio o el stock de un producto para editarlo directamente. Usa el ✎ para corregir el nombre, tipo o marca.
 </p>
 )}
 {filtered.length === 0 && (
 <p className="text-center text-muted-700 py-8 text-sm">
-No se encontró ningún producto que coincida con “{search}”.
+No se encontró ningún producto que coincida con "{search}".
 </p>
 )}
 <div className="space-y-6">
@@ -177,18 +179,59 @@ p.effStock <= 0
 : p.effStock <= p.min_stock
 ? "bg-amber-500"
 : "bg-teal-500";
+const formId = `pform-${p.id}`;
+const isEditing = editingProductId === p.id;
 return (
 <div key={p.id} className="py-3 px-3 bg-white hover:bg-pink-50/40 transition-colors">
 <div className="flex items-center gap-3 flex-wrap">
 <span className={`w-2 h-2 rounded-full shrink-0 ${statusColor}`} title="Estado de stock" />
 <div className="flex-1 min-w-0">
+{isEditing ? (
+<div className="flex flex-col gap-1 mb-1">
+<input
+type="text"
+form={formId}
+name="name"
+defaultValue={p.name}
+placeholder="Nombre del producto"
+className="input-rz !py-1 !px-2 text-xs font-bold"
+/>
+<div className="flex gap-1 flex-wrap">
+<input
+type="text"
+form={formId}
+name="type"
+defaultValue={p.type}
+placeholder="Tipo (ej: Mascarilla)"
+className="input-rz !py-1 !px-2 text-[11px] w-32"
+/>
+<input
+type="text"
+form={formId}
+name="brand"
+defaultValue={p.brand ?? ""}
+placeholder="Marca"
+className="input-rz !py-1 !px-2 text-[11px] flex-1"
+/>
+</div>
+</div>
+) : (
+<>
 <div className="text-sm font-bold">{p.name}</div>
 <div className="text-xs text-muted-700 mt-0.5">
 {p.brand ? p.brand : "—"} · {fmt(Number(p.price))}
 </div>
+</>
+)}
 </div>
 {isOwner ? (
-<form action={updateProduct} className="flex items-center gap-1.5">
+<>
+<form
+id={formId}
+action={updateProduct}
+className="flex items-center gap-1.5"
+onSubmit={() => setEditingProductId(null)}
+>
 <input type="hidden" name="id" value={p.id} />
 <div className="flex flex-col items-end">
 <label className="text-[9px] uppercase text-muted-700 font-mono">Precio $</label>
@@ -240,6 +283,15 @@ className="text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-pink-600 text-whi
 Guardar
 </button>
 </form>
+<button
+type="button"
+onClick={() => setEditingProductId(isEditing ? null : p.id)}
+className="text-pink-300 hover:text-pink-600 px-1"
+title="Editar nombre, tipo o marca"
+>
+✎
+</button>
+</>
 ) : (
 <span
 className={`font-mono text-xs w-16 text-right font-bold ${
@@ -264,11 +316,25 @@ p.effStock <= 0
 <div className="mt-2 pl-5 space-y-1.5">
 {p.product_variations.map((v) => (
 <div key={v.id} className="flex items-center gap-2 text-xs text-muted-700">
-<span className="flex-1 min-w-0">↳ {v.name}</span>
 {isOwner ? (
 <>
-<form action={updateVariationStock} className="flex items-center gap-1">
+<form
+action={updateVariationStock}
+className="flex items-center gap-1 flex-1 min-w-0"
+onSubmit={() => setEditingVarId(null)}
+>
 <input type="hidden" name="id" value={v.id} />
+{editingVarId === v.id ? (
+<input
+type="text"
+name="name"
+defaultValue={v.name}
+placeholder="Nombre de la variación"
+className="input-rz !py-0.5 !px-1.5 flex-1 min-w-0 text-[11px]"
+/>
+) : (
+<span className="flex-1 min-w-0 truncate">↳ {v.name}</span>
+)}
 <input
 type="number"
 step="1"
@@ -283,6 +349,14 @@ className="text-[10px] font-bold px-2 py-1 rounded-full bg-pink-100 text-pink-70
 OK
 </button>
 </form>
+<button
+type="button"
+onClick={() => setEditingVarId(editingVarId === v.id ? null : v.id)}
+className="text-pink-300 hover:text-pink-600 px-0.5"
+title="Editar nombre de la variación"
+>
+✎
+</button>
 <form action={deleteVariation}>
 <input type="hidden" name="id" value={v.id} />
 <input type="hidden" name="productId" value={p.id} />
@@ -292,9 +366,12 @@ OK
 </form>
 </>
 ) : (
+<>
+<span className="flex-1 min-w-0">↳ {v.name}</span>
 <span className={Number(v.stock) <= 0 ? "text-coral-500 font-bold" : ""}>
 {v.stock}
 </span>
+</>
 )}
 </div>
 ))}
