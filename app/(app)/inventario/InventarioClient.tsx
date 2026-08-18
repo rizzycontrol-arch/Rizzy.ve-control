@@ -323,6 +323,7 @@ action={updateVariationStock}
 className="flex items-center gap-1 flex-1 min-w-0"
 onSubmit={() => setEditingVarId(null)}
 style={{ display: "flex", alignItems: "center", gap: 4, flex: "1 1 auto", minWidth: 0 }}
+>
 <input type="hidden" name="id" value={v.id} />
 {editingVarId === v.id ? (
 <input
