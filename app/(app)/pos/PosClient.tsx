@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { finalizeSale, quickAddClient, updateExchangeRate, type CartItemPayload } from "./actions";
 const PAYMENT_METHODS = ["Efectivo $", "Bolívares", "Pago Móvil", "Transferencia", "Zelle", "Binance"];
 type Variation = { id: number; name: string; sku: string | null; stock: number };
@@ -48,6 +49,7 @@ export default function PosClient({
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [editingRate, setEditingRate] = useState(false);
+  const router = useRouter();
   const categories = useMemo(() => {
     const set = new Set(products.map((p) => p.type));
     return ["Todo", ...Array.from(set)];
@@ -163,6 +165,7 @@ export default function PosClient({
     setStep("catalog");
     setDone(true);
     setTimeout(() => setDone(false), 3000);
+    router.refresh();
   }
   if (step === "pago") {
     return (
