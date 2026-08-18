@@ -322,7 +322,7 @@ p.effStock <= 0
 action={updateVariationStock}
 className="flex items-center gap-1 flex-1 min-w-0"
 onSubmit={() => setEditingVarId(null)}
->
+style={{ display: "flex", alignItems: "center", gap: 4, flex: "1 1 auto", minWidth: 0 }}
 <input type="hidden" name="id" value={v.id} />
 {editingVarId === v.id ? (
 <input
@@ -331,9 +331,23 @@ name="name"
 defaultValue={v.name}
 placeholder="Nombre de la variación"
 className="input-rz !py-0.5 !px-1.5 flex-1 min-w-0 text-[11px]"
+style={{ flex: "1 1 auto", minWidth: 0 }}
 />
 ) : (
-<span className="flex-1 min-w-0 truncate">↳ {v.name}</span>
+<span
+className="flex-1 min-w-0 truncate"
+style={{
+flex: "1 1 auto",
+minWidth: 0,
+overflow: "hidden",
+textOverflow: "ellipsis",
+whiteSpace: "nowrap",
+color: "#57534e",
+display: "inline-block",
+}}
+>
+↳ {v.name && v.name.trim() ? v.name : "(sin nombre)"}
+</span>
 )}
 <input
 type="number"
@@ -341,6 +355,7 @@ step="1"
 name="stock"
 defaultValue={Number(v.stock)}
 className="input-rz !py-0.5 !px-1.5 w-14 text-[11px]"
+style={{ width: 56, flex: "0 0 56px" }}
 />
 <button
 type="submit"
@@ -367,7 +382,7 @@ title="Editar nombre de la variación"
 </>
 ) : (
 <>
-<span className="flex-1 min-w-0">↳ {v.name}</span>
+<span className="flex-1 min-w-0" style={{ flex: "1 1 auto", minWidth: 0 }}>↳ {v.name && v.name.trim() ? v.name : "(sin nombre)"}</span>
 <span className={Number(v.stock) <= 0 ? "text-coral-500 font-bold" : ""}>
 {v.stock}
 </span>
