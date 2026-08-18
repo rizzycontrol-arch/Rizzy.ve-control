@@ -320,9 +320,9 @@ p.effStock <= 0
 <>
 <form
 action={updateVariationStock}
-className="flex items-center gap-1 flex-1 min-w-0"
+className="flex items-center gap-1"
 onSubmit={() => setEditingVarId(null)}
-style={{ display: "flex", alignItems: "center", gap: 4, flex: "1 1 auto", minWidth: 0 }}
+style={{ display: "flex", alignItems: "center", gap: 4, flex: "0 0 auto" }}
 >
 <input type="hidden" name="id" value={v.id} />
 {editingVarId === v.id ? (
@@ -331,15 +331,15 @@ type="text"
 name="name"
 defaultValue={v.name}
 placeholder="Nombre de la variación"
-className="input-rz !py-0.5 !px-1.5 flex-1 min-w-0 text-[11px]"
-style={{ flex: "1 1 auto", minWidth: 0 }}
+className="input-rz !py-0.5 !px-1.5 text-[11px]"
+style={{ width: 170, flex: "0 0 170px" }}
 />
 ) : (
 <span
-className="flex-1 min-w-0 truncate"
+className="truncate"
 style={{
-flex: "1 1 auto",
-minWidth: 0,
+width: 170,
+flex: "0 0 170px",
 overflow: "hidden",
 textOverflow: "ellipsis",
 whiteSpace: "nowrap",
@@ -364,7 +364,6 @@ className="text-[10px] font-bold px-2 py-1 rounded-full bg-pink-100 text-pink-70
 >
 OK
 </button>
-</form>
 <button
 type="button"
 onClick={() => setEditingVarId(editingVarId === v.id ? null : v.id)}
@@ -373,6 +372,7 @@ title="Editar nombre de la variación"
 >
 ✎
 </button>
+</form>
 <form action={deleteVariation}>
 <input type="hidden" name="id" value={v.id} />
 <input type="hidden" name="productId" value={p.id} />
